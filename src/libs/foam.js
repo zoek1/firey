@@ -1,6 +1,6 @@
 const axios = require('axios');
 const sleep = require('await-sleep');
-const Geohash = require('latlon-geohash');
+const Geohash  = require('latlon-geohash').default;
 const {
   getPoiDetailsByListingHash
 } = require('./axios');
@@ -17,7 +17,7 @@ const getQueryUser = (address) => {
         numVotesRevealed
         totalAmountStaked
         totalMapRewards
-        listings {
+        listings(where: {whitelisted: true, wasRemoved: false, wasWithdrawn: false}, orderDirection: desc) {
           id
           whitelisted
           wasRemoved
@@ -30,7 +30,7 @@ const getQueryUser = (address) => {
   }
 };
 
-GRAPQL_ENDPOINT = 'https://api.thegraph.com/subgraphs/name/blocklytics/foam';
+const GRAPQL_ENDPOINT = 'https://api.thegraph.com/subgraphs/name/blocklytics/foam';
 
 const retriveListingData = async (listings) =>  {
   return Promise.all(listings.map(async (listing, index) => {
@@ -38,6 +38,7 @@ const retriveListingData = async (listings) =>  {
 
     try {
       let res = await getPoiDetailsByListingHash(listing.id);
+      console.log(Geohash)
       let lat_lng = Geohash.decode(res.data.data.geohash)
       return {...res.data.data, ...res.data.meta, coords: lat_lng};
     } catch (e) {
@@ -59,8 +60,8 @@ const getUserData = (address) => {
 };
 
 const getListings = async (address) => {
-  let partial_info = await getPartialUserData(address);
-  let _listings = partial_info.data.user.listings;
+  let partial_info = await getUserData(address);
+  let _listings = partial_info.data.user ? partial_info.data.user.listings : [];
   let listings = await retriveListingData(_listings);
 
   return {...partial_info.data.user, listings}
@@ -68,4 +69,5 @@ const getListings = async (address) => {
 
 module.exports = {
   getUserData,
+  getListings
 };

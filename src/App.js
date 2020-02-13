@@ -26,14 +26,6 @@ function App(props) {
   const [topicManager, setTopicManager] = useState({})
   const [disableLogin, setDisableLogin] =  useState(false);
 
-  useEffect(() => {
-    if (!box) {
-      history.push('/');
-      setAppReady(true);
-    }
-  }, [])
-
-
 
   const handleLogin = async () => {
     const address = await window.ethereum.enable();
@@ -46,16 +38,24 @@ function App(props) {
     const chatSpace = await box.openSpace(BOX_SPACE);
     const Did = chatSpace.DID;
 
-    console.log(address)
     setAddress(address[0]);
     setProfile(profile);
     setBox(box);
     setDid(Did);
+    console.log(Did)
     setChatSpace(chatSpace);
 
     history.push('/home');
 
   };
+
+  useEffect(() => {
+    if (!box) {
+      history.push('/');
+      setAppReady(true);
+      handleLogin();
+    }
+  }, [])
 
   const addToTopicList = () => {
 
@@ -66,17 +66,18 @@ function App(props) {
       {isAppReady && (<React.Fragment>
         <CssBaseline />
         <Switch>
-          <Route
+          {/*<Route
             exact
             path='/'
             render={() => <Login handleLogin={handleLogin.bind(this)} disableLogin={disableLogin} />}
-          />
+          />*/}
 
           <Route
             exact
             path='/home'
             render={() => (
               <ForumHome
+                space={chatSpace}
                 profile={profile}
                 address={currentAddress}
                 did={currentDid}
