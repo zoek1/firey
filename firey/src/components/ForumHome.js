@@ -11,18 +11,49 @@ import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
 import {getListings} from "../libs/foam";
 import Web3 from "web3";
+import * as axios from "axios";
 
-const MODERATOR_ADDRESS = 'did:3:bafyreielomoqdr2pabn7x4luipexudmkugim7qfdn6m2qiqj4l6i2xi6wu';
+const MODERATOR_ADDRESS = '0xed628E601012cC6Fd57Dc0cede2A527cdc86A221';
+const PREFIX_CHANNEL_NAME = 'test_firey';
+const ENDPOINT_CACHE = '/api/v0/thread/';
+
+const get_thread_name = (title) => `${PREFIX_CHANNEL_NAME}_${title.replace(/\W/g, '')}_${Date.now()}`;
 
 const createThread = async (address, space, title, description, locationArea, joiningPolicy, publishingPolicy) => {
-  const thread = await space.joinThread('myThread', {
+  let threadName = get_thread_name(title);
+
+  const thread = await space.joinThread(threadName, {
       firstModerator: address,
       members: joiningPolicy.type !== 'open'
-    });
+  });
 
-    await thread.addModerator(MODERATOR_ADDRESS);
-    console.log(thread);
-    return thread;
+  await thread.addModerator(MODERATOR_ADDRESS);
+  console.log(thread);
+
+  let response = axios({
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    data: JSON.stringify({
+        title: title,
+        description: description,
+        location: locationArea.location,
+        precision: locationArea.presicion,
+        joining: joiningPolicy.type,
+        joiningValue: joiningPolicy.value,
+        publishing: publishingPolicy.type,
+        publishingValue: publishingPolicy.value,
+        threadId: thread._address,
+        threadName: threadName,
+        moderator: address,
+        is_open: joiningPolicy.type !== 'open'
+    }),
+    url: ENDPOINT_CACHE
+  });
+
+
+  return thread;
 };
 
 const ForumHome = (props) => {
@@ -61,9 +92,11 @@ const ForumHome = (props) => {
       createThread(address, space, title, description,
         {location, presicion},
         {type: joining, value: joiningValue},
-        {publishing, publishingValue}
+        {type: publishing, value: publishingValue}
         ).then(() => {
           console.log('created')
+          //navigator.push(`/thread/${0}`)
+
       }).catch((e) => console.log(e))
     }
 
