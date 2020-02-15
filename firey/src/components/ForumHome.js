@@ -18,12 +18,10 @@ const EntryThread = (props)  => {
     description,
     subscribe,
     thread,
-    joining,
     publishing,
   } = props.data;
   const {goThread, joinThread, address, badges} = props;
-  console.log(badges)
-  let badge = badges[joining.value]
+  let badge = badges[publishing.value]
   return (
       <Card>
         <CardContent>
@@ -31,32 +29,30 @@ const EntryThread = (props)  => {
           <Typography component="p">{description}</Typography>
           <div style={{display: 'flex'}}>
             <Typography component="label">Access</Typography>
-            { badge && joining.policy === 'badge' &&
+            { badge && publishing.policy === 'badge' &&
             <div>
              <img style={{maxWidth: 50}} src={badge.url} alt=""/><br/>
              <Typography component={'label'}>{badge.name}</Typography>
             </div>}
-            { (joining.policy === 'points' || joining.policy === 'badge') && <div>
+            { (publishing.policy === 'points' || publishing.policy === 'badge') && <div>
               <img style={{maxWidth: 35}} src='https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png' alt=""/>
-              { badge  && joining.policy === 'badge' ? badge.req.points : joining.value }
+              { badge  && publishing.policy === 'badge' ? badge.req.points : publishing.value }
             </div>}
-             {(joining.policy === 'holding' || joining.policy === 'badge')  &&
+             {(publishing.policy === 'holding' || publishing.policy === 'badge')  &&
             <div>
               <img style={{maxWidth: 35}} src="https://i.ya-webdesign.com/images/game-coin-png-1.png" alt=""/>
-              {badge  && joining.policy === 'badge' ? badge.req.holding : joining.value }
+              {badge  && publishing.policy === 'badge' ? badge.req.holding : publishing.value }
             </div>}
-           {(joining.policy === 'challenge' || joining.policy === 'badge') &&
+           {(publishing.policy === 'challenge' || publishing.policy === 'badge') &&
             <div>
               <img style={{maxWidth: 35}} src="https://i7.pngguru.com/preview/449/891/625/minecraft-diamond-sword-video-game-mob-ice-axe.jpg" alt=""/>
-              {badge && joining.policy === 'badge' ? badge.req.challenge :  joining.value }
+              {badge && publishing.policy === 'badge' ? badge.req.challenge :  publishing.value }
             </div>
            }
           </div>
         </CardContent>
         <CardActions>
-          { thread.members.indexOf(address) === -1 ? <Button onClick={() => joinThread(props.data)}>Join</Button> : <></>}
-
-          <Button onClick={() => goThread(props.data)}>Go</Button>
+          <Button onClick={() => joinThread(props.data)}>Join</Button>
         </CardActions>
       </Card>)
 };

@@ -33,7 +33,7 @@ function App(props) {
   const [badges, setBadges] = useState([]);
   const [limits, setLimits] = useState({
     id: '0x0',
-    challenges: 0,
+    challenge: 0,
     votes: 0,
     points: 0,
     tokens: "0",
@@ -46,7 +46,7 @@ function App(props) {
     setLocations(foam_user.listings);
     let user_limits = {
       id: foam_user.id,
-      challenges: foam_user.numChallenges,
+      challenge: foam_user.numChallenges,
       votes: foam_user.numVotesRevealed,
       tokens: foam_user.totalAmountStaked,
       points: foam_user.listings.length,

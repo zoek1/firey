@@ -134,7 +134,7 @@ def create_thread(request):
     precision = data.get('precision')
     joining = data.get('joining')
     joining_value = data.get('joiningValue')
-    publishing = data.get('joiningValue')
+    publishing = data.get('publishing')
     publishing_value = data.get('publishingValue')
     thread_id = data.get('threadId')
     thread_name = data.get('threadName')

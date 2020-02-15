@@ -81,18 +81,83 @@ const NewThread = (props) => {
   const [description, setDescription] = useState('');
   const [joining, setJoining] = useState('open');
   const [publishing, setPublishing] = useState('open');
-  const [location, setLocation] = useState({});
-  const [publishingValue, setPublishingValue] = useState("");
+  const [location, _setLocation] = useState({});
+  const [publishingValue, _setPublishingValue] = useState("");
   const [joiningValue, setJoiningValue] = useState("");
   const [presicion, setPresicion] = useState(10);
+
+  const setLocation = (location) => {
+    const geohash = location.geohash.slice(0, presicion);
+     for(let i=0; i<locations.length;i++){
+       let test = locations[i].geohash.slice(0, presicion);
+       if (test === geohash) {
+         _setLocation(location);
+         return true;
+       }
+     }
+     return false;
+  };
+
+  const decimal_re = /(^-?[0-9.]+)$/;
+  const uint_re = /^\d+$/;
+  const setPublishingValue = (val) => {
+
+    const BN = Web3.utils.BN;
+    if (val === '') {
+      _setPublishingValue(val)
+    }
+
+
+    if (publishing === 'holding') {
+      if (!val.match(decimal_re)) return;
+      let requestAmount = Web3.utils.toWei(val)
+      console.log(typeof requestAmount)
+      console.log(requestAmount)
+
+      if (new BN(requestAmount).lte(new BN(limits.tokens))) {
+        _setPublishingValue(val)
+        console.log('Update amount')
+      }
+    }
+
+    if (publishing === 'points' ) {
+      if (!val.match(uint_re)) return;
+      if (parseInt(val) <= limits.points) {
+        _setPublishingValue(val)
+        console.log('Update amount')
+      }
+    }
+    if (publishing === 'challenge' ) {
+      if (!val.match(uint_re)) return;
+      if (parseInt(val) <= limits.challenge) {
+        _setPublishingValue(val)
+        console.log('Update amount')
+      }
+    }
+
+    const checkBadge = (badge, limits) => {
+      if (new BN(badge.req.holding).gt(new BN(limits.tokens))) return false;
+      if (badge.req.challenge > limits.challenge) return false;
+      if (badge.req.points > limits.points) return false;
+
+      return true;
+    };
+
+    if (publishing === 'badge' ) {
+      let badge = badges[val];
+      if (checkBadge(badge, limits)) {
+        _setPublishingValue(val);
+        console.log('Update amount')
+      }
+    }
+  };
 
   const onCreate = () => {
     console.log(!!title)
     console.log(!!description)
     console.log(!!location)
-    console.log(!!joining)
     console.log(!!publishing)
-    if (!!title && !!description  && !!joining && !!publishing) {
+    if (!!title && !!description && location && !!publishing) {
       createThread(address, space, title, description,
         {location, presicion},
         {type: joining, value: joiningValue},
@@ -158,50 +223,6 @@ const NewThread = (props) => {
             </FormControl>
             </Grid>
             <Grid container item>
-            <FormControl>
-              <InputLabel id="joining-label">Joining</InputLabel>
-
-              <Select labelId="joining-label" id='privacy'
-                      value={joining}
-                      onChange={ (e) => setJoining(e.target.value)}>
-                <MenuItem value="open">Open</MenuItem>
-                <MenuItem value="points">Points</MenuItem>
-                <MenuItem value="challenge">Challenges</MenuItem>
-                <MenuItem value="holding">Foam amount</MenuItem>
-                <MenuItem value="badge">Badge</MenuItem>
-              </Select>
-            </FormControl>
-              {joining === 'points' && <Grid container item xs={8}>
-                <TextField id='points' label="Min Number of Points"
-                           value={joiningValue}
-                           onChange={ (e) => setJoiningValue(e.target.value)}
-                           helperText={`Max allowed points ${limits.points}"`}
-                />
-              </Grid>}
-              {joining === 'challenge' && <Grid container item xs={8}>
-                <TextField id='description' label="Min Number of Challenges"
-                           value={joiningValue}
-                           onChange={ (e) => setJoiningValue(e.target.value)}
-                           helperText={`Max allowed challenges ${limits.challenges}`} />
-              </Grid>}
-              {joining === 'holding' && <Grid container item xs={8}>
-                <TextField id='holding' label="Min Number of FOAM Tokens staked"
-                           value={joiningValue}
-                           onChange={ (e) => setJoiningValue(e.target.value)}
-                           helperText={`Max allowed ${Web3.utils.fromWei(limits.tokens ? limits.tokens.toString() : "")} FOAM`} />
-              </Grid>}
-              {joining === 'badge' && <Grid container item xs={8}>
-                <FormControl>
-                  <InputLabel id="badge-label">Publishing</InputLabel>
-
-                  <Select labelId="badge-label" id='privacy'
-                          value={joiningValue}
-                          onChange={ (e) => setJoiningValue(e.target.value)}>
-                    { badges.map((b) => <MenuItem value={b.id}><img src={b.url} style={{maxWidth: '35px'}}/> {b.name} - {b.description}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>}
-
               <FormControl>
               <InputLabel id="privacy-label">Publishing</InputLabel>
 
@@ -227,7 +248,7 @@ const NewThread = (props) => {
               <TextField id='description' label="Min Number of Challenges"
                          value={publishingValue}
                          onChange={ (e) => setPublishingValue(e.target.value)}
-                         helperText={`Max allowed challenges ${limits.challenges}`} />
+                         helperText={`Max allowed challenges ${limits.challenge}`} />
             </Grid>}
             {publishing === 'holding' && <Grid container item xs={8}>
               <TextField id='holding' label="Min Number of FOAM Tokens staked"
