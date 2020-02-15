@@ -12,6 +12,7 @@ import Button from "@material-ui/core/Button";
 import {getListings} from "../libs/foam";
 import Web3 from "web3";
 import * as axios from "axios";
+import {withRouter} from "react-router-dom";
 
 const MODERATOR_ADDRESS = '0xed628E601012cC6Fd57Dc0cede2A527cdc86A221';
 const PREFIX_CHANNEL_NAME = 'test_firey';
@@ -21,13 +22,21 @@ const get_thread_name = (title) => `${PREFIX_CHANNEL_NAME}_${title.replace(/\W/g
 
 const createThread = async (address, space, title, description, locationArea, joiningPolicy, publishingPolicy) => {
   let threadName = get_thread_name(title);
-
+  console.log(threadName)
   const thread = await space.joinThread(threadName, {
       firstModerator: address,
       members: joiningPolicy.type !== 'open'
   });
 
-  await thread.addModerator(MODERATOR_ADDRESS);
+  if (MODERATOR_ADDRESS !== address) {
+    try {
+      await thread.addModerator(MODERATOR_ADDRESS);
+    } catch (e) {
+      console.log(e)
+      console.log(`${MODERATOR_ADDRESS} already have access!`)
+    }
+  }
+
   console.log(thread);
 
   let response = axios({
@@ -52,8 +61,7 @@ const createThread = async (address, space, title, description, locationArea, jo
     url: ENDPOINT_CACHE
   });
 
-
-  return thread;
+  return (await response);
 };
 
 const NewThread = (props) => {
@@ -61,7 +69,8 @@ const NewThread = (props) => {
     address,
     profile,
     did,
-    space
+    space,
+    history,
   } = props;
 
   const [title, setTitle] = useState('');
@@ -93,9 +102,11 @@ const NewThread = (props) => {
         {location, presicion},
         {type: joining, value: joiningValue},
         {type: publishing, value: publishingValue}
-        ).then(() => {
+        ).then((response) => {
           console.log('created')
-          //navigator.push(`/thread/${0}`)
+          history.push(`/threads/${response.data.id}`, {
+            thread: response.data
+          })
 
       }).catch((e) => console.log(e))
     }
@@ -243,8 +254,8 @@ const NewThread = (props) => {
             </Grid>}
 
             </Grid>
-            <Button  variant="contained" color="primary" onClick={onCreate}>
-              Create
+            <Button disabled={!space} variant="contained" color="primary" onClick={onCreate}>
+              Create {!space}
             </Button>
           </form>
         </Paper>
@@ -254,4 +265,4 @@ const NewThread = (props) => {
 }
 
 
-export default NewThread;
+export default withRouter(NewThread);
