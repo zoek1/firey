@@ -5,7 +5,8 @@ from django.db import models
 class Thread(models.Model):
     POLICIES = (
         ('open', 'open'),
-        ('points', 'challenge'),
+        ('points', 'points'),
+        ('holding', 'holding'),
         ('challenge', 'challenge'),
         ('badge', 'badge')
     )

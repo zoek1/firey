@@ -30,6 +30,7 @@ function App(props) {
   const [disableLogin, setDisableLogin] =  useState(false);
   const [threads, setThreads] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [badges, setBadges] = useState([]);
   const [limits, setLimits] = useState({
     id: '0x0',
     challenges: 0,
@@ -83,8 +84,10 @@ function App(props) {
   const forceRefresh =  async () => {
     try {
       const response = await axios(LIST_THREADS_CACHE);
+      console.log(response)
       setThreads(response.data.data)
-      console.log(response.data.data)
+      setBadges(response.data.badges);
+      console.log(response.data)
     } catch (e) {
       console.log(e);
     }
@@ -117,6 +120,7 @@ function App(props) {
                 profile={profile}
                 address={currentAddress}
                 did={currentDid}
+                badges={badges}
                 refresh={forceRefresh.bind(this)}
                 locations={locations}
                 limits={limits}
@@ -131,6 +135,7 @@ function App(props) {
                 space={chatSpace}
                 profile={profile}
                 address={currentAddress}
+                badges={badges}
                 did={currentDid}
                 box={box}
                 refresh={forceRefresh.bind(this)}
@@ -147,6 +152,7 @@ function App(props) {
               address={currentAddress}
               did={currentDid}
               profile={profile}
+              badges={badges}
               isReady={isAppReady}
               space={chatSpace}
               threads={threads}

@@ -62,6 +62,7 @@ const getUserData = (address) => {
 const getListings = async (address) => {
   let partial_info = await getUserData(address);
   let _listings = partial_info.data.user ? partial_info.data.user.listings : [];
+  console.log(_listings)
   let listings = await retriveListingData(_listings);
 
   return {...partial_info.data.user, listings}

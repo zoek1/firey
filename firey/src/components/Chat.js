@@ -126,10 +126,15 @@ class Chat extends Component {
       profile,
       did,
       space,
+      badges,
     } = this.props;
 
-    const thread = this.props.location.state.thread;
+    const thread = this.props.location.state.thread
+    const {
+      joining
+    } = this.props.location.state.thread;
     console.log(`CHAT: ${thread.thread.id}`)
+    let badge = badges[joining.value]
 
     return (
       <Container>
@@ -143,6 +148,29 @@ class Chat extends Component {
             </Card>
           </Grid>
           <Grid item xs={12} md={8}>
+            <div style={{display: 'flex'}}>
+              <Typography component="label">Access</Typography>
+              { badge && joining.policy === 'badge' &&
+              <div>
+                <img style={{maxWidth: 50}} src={badge.url} alt=""/><br/>
+                <Typography component={'label'}>{badge.name}</Typography>
+              </div>}
+              { (joining.policy === 'points' || joining.policy === 'badge') && <div>
+                <img style={{maxWidth: 35}} src='https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png' alt=""/>
+                { badge  && joining.policy === 'badge' ? badge.req.points : joining.value }
+              </div>}
+              {(joining.policy === 'holding' || joining.policy === 'badge')  &&
+              <div>
+                <img style={{maxWidth: 35}} src="https://i.ya-webdesign.com/images/game-coin-png-1.png" alt=""/>
+                {badge  && joining.policy === 'badge' ? badge.req.holding : joining.value }
+              </div>}
+              {(joining.policy === 'challenge' || joining.policy === 'badge') &&
+              <div>
+                <img style={{maxWidth: 35}} src="https://i7.pngguru.com/preview/449/891/625/minecraft-diamond-sword-video-game-mob-ice-axe.jpg" alt=""/>
+                {badge && joining.policy === 'badge' ? badge.req.challenge :  joining.value }
+              </div>
+              }
+            </div>
             {space && space._name &&
             <Grid container>
 

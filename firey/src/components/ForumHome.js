@@ -18,14 +18,40 @@ const EntryThread = (props)  => {
     description,
     subscribe,
     thread,
+    joining,
+    publishing,
   } = props.data;
-  const {goThread, joinThread, address} = props;
-
+  const {goThread, joinThread, address, badges} = props;
+  console.log(badges)
+  let badge = badges[joining.value]
   return (
       <Card>
         <CardContent>
           <Typography component="h3">{title}</Typography>
           <Typography component="p">{description}</Typography>
+          <div style={{display: 'flex'}}>
+            <Typography component="label">Access</Typography>
+            { badge && joining.policy === 'badge' &&
+            <div>
+             <img style={{maxWidth: 50}} src={badge.url} alt=""/><br/>
+             <Typography component={'label'}>{badge.name}</Typography>
+            </div>}
+            { (joining.policy === 'points' || joining.policy === 'badge') && <div>
+              <img style={{maxWidth: 35}} src='https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png' alt=""/>
+              { badge  && joining.policy === 'badge' ? badge.req.points : joining.value }
+            </div>}
+             {(joining.policy === 'holding' || joining.policy === 'badge')  &&
+            <div>
+              <img style={{maxWidth: 35}} src="https://i.ya-webdesign.com/images/game-coin-png-1.png" alt=""/>
+              {badge  && joining.policy === 'badge' ? badge.req.holding : joining.value }
+            </div>}
+           {(joining.policy === 'challenge' || joining.policy === 'badge') &&
+            <div>
+              <img style={{maxWidth: 35}} src="https://i7.pngguru.com/preview/449/891/625/minecraft-diamond-sword-video-game-mob-ice-axe.jpg" alt=""/>
+              {badge && joining.policy === 'badge' ? badge.req.challenge :  joining.value }
+            </div>
+           }
+          </div>
         </CardContent>
         <CardActions>
           { thread.members.indexOf(address) === -1 ? <Button onClick={() => joinThread(props.data)}>Join</Button> : <></>}
@@ -38,7 +64,7 @@ const EntryThread = (props)  => {
 const ThreadGroup = (props) => {
   const threads = props.threads.map((thread) => (
     <EntryThread key={thread.id} data={thread} history={props.history}
-                 joinThread={props.joinThread} goThread={props.goThread} address={props.address}/>
+                 joinThread={props.joinThread} goThread={props.goThread} address={props.address} badges={props.badges}/>
   ));
   return (<Container>
     {threads}
@@ -57,6 +83,7 @@ const ForumHome = (props) => {
     match,
     threads,
     refresh,
+    badges,
   } = props;
   console.log(props)
 
@@ -95,7 +122,7 @@ const ForumHome = (props) => {
     <Typography component="h2">Threads</Typography>
     <Link to='/threads/new'>New thread</Link>
 
-    <ThreadGroup threads={threads} goThread={goToThread} joinThread={subscribeThread} address={address} />
+    <ThreadGroup threads={threads} goThread={goToThread} joinThread={subscribeThread} address={address} badges={badges}/>
   </>)
 };
 

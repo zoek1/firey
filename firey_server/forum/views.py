@@ -9,13 +9,88 @@ from django.views.decorators.http import require_POST
 
 from forum.models import Thread, Subscription
 
+BADGES = [
+    {
+        'id': 0,
+        'name': 'Initial',
+        'url': 'https://gitcoin.co/dynamic/kudos/6190/10_bounties_completed',
+        'description': 'Requires at least 1 point',
+        'req': {
+            'points': 1,
+            'challenge': 0,
+            'holding': 0
+        }
+    },
+    {
+        'id': 1,
+        'name': 'Mapper',
+        'url': 'https://gitcoin.co/dynamic/kudos/6190/10_bounties_completed',
+        'description': 'Requires at least 10 point',
+        'req': {
+            'points': 10,
+            'challenge': 0,
+            'holding': 0
+        }
+    },
+    {
+        'id': 2,
+        'name': 'Hold starter',
+        'url': 'https://gitcoin.co/dynamic/kudos/1820/shut_up_and_take_my_ether',
+        'description': 'Requires at least 50 FOAM',
+        'req': {
+            'points': 0,
+            'challenge': 0,
+            'holding': 50
+        }
+    },
+    {
+        'id': 3,
+        'name': 'The contender',
+        'url': 'https://gitcoin.co/dynamic/kudos/621/top_leaderboard',
+        'description': 'Requires at least 1 challenge',
+        'req': {
+            'points': 0,
+            'challenge': 1,
+            'holding': 0
+        }
+    },
+    {
+        'id': 4,
+        'name': 'Killer',
+        'url': 'https://gitcoin.co/dynamic/kudos/620/top_five_leaderboard',
+        'description': 'Requires at least 5 challenges',
+        'req': {
+            'points': 0,
+            'challenge': 5,
+            'holding': 0
+        }
+    },
+    {
+        'id': 5,
+        'name': 'Sky mapper',
+        'url': 'https://gitcoin.co/dynamic/kudos/107/app_dev_all_star',
+        'description': 'Requires at least 10 points, 10 challenges, 50 FOAM',
+        'req': {
+            'points': 10,
+            'challenge': 10,
+            'holding': 50
+        }
+    },
+]
+
 
 def list_threads(request):
-    return JsonResponse({'data': [to_dict(t) for t in Thread.objects.all()]})
+    return JsonResponse({
+        'data': [to_dict(t) for t in Thread.objects.all().order_by('-updated_at')],
+        'badges': BADGES
+    })
 
 
 def get_threads(request, pk):
-    return JsonResponse({'data': to_dict(Thread.objects.get(pk=pk))})
+    return JsonResponse({
+        'data': to_dict(Thread.objects.get(pk=pk)),
+        'badges': BADGES
+    })
 
 
 def to_dict(thread):

@@ -73,7 +73,8 @@ const NewThread = (props) => {
     space,
     history,
     locations,
-    limits
+    limits,
+    badges
   } = props;
 
   const [title, setTitle] = useState('');
@@ -170,8 +171,6 @@ const NewThread = (props) => {
                 <MenuItem value="badge">Badge</MenuItem>
               </Select>
             </FormControl>
-
-
               {joining === 'points' && <Grid container item xs={8}>
                 <TextField id='points' label="Min Number of Points"
                            value={joiningValue}
@@ -189,9 +188,19 @@ const NewThread = (props) => {
                 <TextField id='holding' label="Min Number of FOAM Tokens staked"
                            value={joiningValue}
                            onChange={ (e) => setJoiningValue(e.target.value)}
-                           helperText={`Max allowed ${Web3.utils.fromWei(limits.tokens)} FOAM`} />
+                           helperText={`Max allowed ${Web3.utils.fromWei(limits.tokens ? limits.tokens.toString() : "")} FOAM`} />
               </Grid>}
+              {joining === 'badge' && <Grid container item xs={8}>
+                <FormControl>
+                  <InputLabel id="badge-label">Publishing</InputLabel>
 
+                  <Select labelId="badge-label" id='privacy'
+                          value={joiningValue}
+                          onChange={ (e) => setJoiningValue(e.target.value)}>
+                    { badges.map((b) => <MenuItem value={b.id}><img src={b.url} style={{maxWidth: '35px'}}/> {b.name} - {b.description}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>}
 
               <FormControl>
               <InputLabel id="privacy-label">Publishing</InputLabel>
@@ -224,13 +233,24 @@ const NewThread = (props) => {
               <TextField id='holding' label="Min Number of FOAM Tokens staked"
                          value={publishingValue}
                          onChange={ (e) => setPublishingValue(e.target.value)}
-                         helperText={`Max allowed ${Web3.utils.fromWei(limits.tokens)} FOAM`} />
+                         helperText={`Max allowed ${Web3.utils.fromWei(limits.tokens ? limits.tokens.toString() : "")} FOAM`} />
+            </Grid>}
+            {publishing === 'badge' && <Grid container item xs={8}>
+              <FormControl>
+                <InputLabel id="badge-label">Publishing</InputLabel>
+
+                <Select labelId="badge-label" id='privacy'
+                        value={publishingValue}
+                        onChange={ (e) => setPublishingValue(e.target.value)}>
+                  { badges.map((b) => <MenuItem value={b.id}><img src={b.url} style={{maxWidth: '35px'}}/> {b.name} - {b.description}</MenuItem>)}
+                </Select>
+              </FormControl>
             </Grid>}
 
-            </Grid>
             <Button disabled={!space} variant="contained" color="primary" onClick={onCreate}>
               Create {!space}
             </Button>
+            </Grid>
           </form>
         </Paper>
       </Grid>
