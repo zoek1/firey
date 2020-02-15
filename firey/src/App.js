@@ -12,9 +12,12 @@ import Chat from "./components/Chat";
 import NewThread from "./components/NewThread";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import ForumHome from "./components/ForumHome";
+import * as axios from "axios";
+import {getListings} from "./libs/foam";
+import Web3 from "web3";
 
 const BOX_SPACE = 'firey';
-
+const LIST_THREADS_CACHE = '/api/v0/threads/';
 
 function App(props) {
   const {history} = props;
@@ -25,11 +28,38 @@ function App(props) {
   const [profile, setProfile] = useState({});
   const [isAppReady, setAppReady] = useState(false);
   const [disableLogin, setDisableLogin] =  useState(false);
+  const [threads, setThreads] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [limits, setLimits] = useState({
+    id: '0x0',
+    challenges: 0,
+    votes: 0,
+    points: 0,
+    tokens: "0",
+    rewards: 0,
+  });
 
+  let listing = async (address) => {
+    const foam_user  = await getListings(address);
+    console.log(foam_user);
+    setLocations(foam_user.listings);
+    let user_limits = {
+      id: foam_user.id,
+      challenges: foam_user.numChallenges,
+      votes: foam_user.numVotesRevealed,
+      tokens: foam_user.totalAmountStaked,
+      points: foam_user.listings.length,
+      rewards: foam_user.totalMapRewards,
+    };
+    setLimits(user_limits)
+  };
 
   const handleLogin = async () => {
-    const address = await window.ethereum.enable();
+    await window.ethereum.enable();
     setDisableLogin(true);
+    const web3 = new Web3(window.web3.currentProvider || "ws://localhost:8545");
+    let address = await web3.eth.getAccounts()
+
     const profile = await Box.getProfile(address[0]);
     const box = await Box.openBox(address[0], window.ethereum, {})
 
@@ -45,13 +75,29 @@ function App(props) {
     console.log(Did)
     setChatSpace(chatSpace);
 
-    //history.push('/home');
+    await listing(address[0]);
 
+    //history.push('/home');
+  };
+
+  const forceRefresh =  async () => {
+    try {
+      const response = await axios(LIST_THREADS_CACHE);
+      setThreads(response.data.data)
+      console.log(response.data.data)
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   useEffect(() => {
+    forceRefresh().then(() => console.log('updated data')).catch((e) => console.log(e))
+  }, []);
+
+
+  useEffect(() => {
     if (!box) {
-      history.push('/threads');
+      history.push('/');
       setAppReady(true);
       handleLogin();
     }
@@ -62,8 +108,39 @@ function App(props) {
       <CssBaseline />
       {isAppReady && (<React.Fragment>
         <Switch>
-          {<Route
-            path='/threads'
+          <Route
+            exact
+            path={'/threads/new'}
+            render={() => (
+              <NewThread
+                space={chatSpace}
+                profile={profile}
+                address={currentAddress}
+                did={currentDid}
+                refresh={forceRefresh.bind(this)}
+                locations={locations}
+                limits={limits}
+              />
+            )}
+          />
+          <Route
+            exact
+            path={'/threads/:threadId'}
+            render={() => (
+              <Chat
+                space={chatSpace}
+                profile={profile}
+                address={currentAddress}
+                did={currentDid}
+                box={box}
+                refresh={forceRefresh.bind(this)}
+              />
+            )}
+          />
+
+          <Route
+            exact
+            path='/'
             render={() => <ForumHome
               history={history}
               box={box}
@@ -71,8 +148,12 @@ function App(props) {
               did={currentDid}
               profile={profile}
               isReady={isAppReady}
-              space={chatSpace}  />}
-          />}
+              space={chatSpace}
+              threads={threads}
+              refresh={forceRefresh.bind(this)}
+            />}
+          />
+
         </Switch>
       </React.Fragment>)}
     </div>

@@ -20,13 +20,12 @@ const ENDPOINT_CACHE = '/api/v0/thread/';
 
 const get_thread_name = (title) => `${PREFIX_CHANNEL_NAME}_${title.replace(/\W/g, '')}_${Date.now()}`;
 
-const createThread = async (address, space, title, description, locationArea, joiningPolicy, publishingPolicy) => {
+const createThread = async (address, space, title, description, locationArea, joiningPolicy, publishingPolicy, did) => {
   let threadName = get_thread_name(title);
-  console.log(threadName)
-  const thread = await space.joinThread(threadName, {
-      firstModerator: address,
-      members: joiningPolicy.type !== 'open'
-  });
+  console.log(threadName);
+  let thread;
+
+  thread = await space.joinThread(threadName);
 
   if (MODERATOR_ADDRESS !== address) {
     try {
@@ -56,7 +55,9 @@ const createThread = async (address, space, title, description, locationArea, jo
         threadId: thread._address,
         threadName: threadName,
         moderator: address,
-        is_open: joiningPolicy.type !== 'open'
+        is_open: joiningPolicy.type !== 'open',
+        did: did,
+        space: space._name,
     }),
     url: ENDPOINT_CACHE
   });
@@ -71,6 +72,8 @@ const NewThread = (props) => {
     did,
     space,
     history,
+    locations,
+    limits
   } = props;
 
   const [title, setTitle] = useState('');
@@ -81,15 +84,6 @@ const NewThread = (props) => {
   const [publishingValue, setPublishingValue] = useState("");
   const [joiningValue, setJoiningValue] = useState("");
   const [presicion, setPresicion] = useState(10);
-  const [locations, setLocations] = useState([]);
-  const [limits, setLimits] = useState({
-    id: '0x0',
-    challenges: 0,
-    votes: 0,
-    points: 0,
-    tokens: "0",
-    rewards: 0,
-  });
 
   const onCreate = () => {
     console.log(!!title)
@@ -101,36 +95,16 @@ const NewThread = (props) => {
       createThread(address, space, title, description,
         {location, presicion},
         {type: joining, value: joiningValue},
-        {type: publishing, value: publishingValue}
+        {type: publishing, value: publishingValue}, did, space
         ).then((response) => {
           console.log('created')
           history.push(`/threads/${response.data.id}`, {
             thread: response.data
           })
-
       }).catch((e) => console.log(e))
     }
 
-  }
-
-  useEffect(() => {
-      let listing = async () => {
-      const foam_user  = await getListings(address);
-      console.log(foam_user);
-      setLocations(foam_user.listings);
-      let user_limits = {
-        id: foam_user.id,
-        challenges: foam_user.numChallenges,
-        votes: foam_user.numVotesRevealed,
-        tokens: foam_user.totalAmountStaked,
-        points: foam_user.listings.length,
-        rewards: foam_user.totalMapRewards,
-      };
-      setLimits(user_limits)
-    };
-    listing();
-  }, []);
-
+  };
 
   return (<Container>
     <Grid container spacing={1}>

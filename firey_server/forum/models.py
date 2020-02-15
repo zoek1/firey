@@ -24,4 +24,10 @@ class Thread(models.Model):
     thread_name = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
+    space = models.CharField(max_length=200, default="")
+    did = models.CharField(max_length=200, default="")
 
+
+class Subscription(models.Model):
+    thread = models.ForeignKey(Thread, related_name='subscribers', on_delete=models.CASCADE)
+    address = models.CharField(max_length=200)

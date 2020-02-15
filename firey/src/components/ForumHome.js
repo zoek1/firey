@@ -1,47 +1,48 @@
 import Typography from "@material-ui/core/Typography";
 import React, {useEffect, useState} from "react";
-import * as axios from "axios";
-import {Link, Route, Switch, withRouter, useRouteMatch} from "react-router-dom";
-import Button from "@material-ui/core/Button";
+import {Link} from "react-router-dom";
 import {Card} from "@material-ui/core";
-import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
-import NewThread from "./NewThread";
-import Chat from "./Chat";
+import Container from "@material-ui/core/Container";
+import Button from "@material-ui/core/Button";
+import CardActions from "@material-ui/core/CardActions";
+import * as axios from "axios";
 
-const LIST_THREADS_CACHE = '/api/v0/threads/';
+const SUBSCRIBE_THREAD_CACHE = '/api/v0/threads/subscribe';
+const MODERATOR_ADDRESS = '0xed628E601012cC6Fd57Dc0cede2A527cdc86A221';
 
 const EntryThread = (props)  => {
   const {
     id,
     title,
-    description
+    description,
+    subscribe,
+    thread,
   } = props.data;
+  const {goThread, joinThread, address} = props;
 
   return (
-    <Link to={{
-      pathname: `/threads/${id}`,
-      state: {
-        thread: props.data
-      }
-    }}>
       <Card>
         <CardContent>
           <Typography component="h3">{title}</Typography>
           <Typography component="p">{description}</Typography>
         </CardContent>
-      </Card>
-    </Link>)
+        <CardActions>
+          { thread.members.indexOf(address) === -1 ? <Button onClick={() => joinThread(props.data)}>Join</Button> : <></>}
+
+          <Button onClick={() => goThread(props.data)}>Go</Button>
+        </CardActions>
+      </Card>)
 };
 
 const ThreadGroup = (props) => {
   const threads = props.threads.map((thread) => (
-    <EntryThread key={thread.id} data={thread} />
+    <EntryThread key={thread.id} data={thread} history={props.history}
+                 joinThread={props.joinThread} goThread={props.goThread} address={props.address}/>
   ));
-  return (<>
+  return (<Container>
     {threads}
-  </>)
-
+  </Container>)
 };
 
 const ForumHome = (props) => {
@@ -53,71 +54,48 @@ const ForumHome = (props) => {
     profile,
     isReady,
     space,
-    match
+    match,
+    threads,
+    refresh,
   } = props;
   console.log(props)
-  const [threads, setThreads] = useState([]);
-  const [topics, setTopcs] = useState([]);
-  const [topicManager, setTopicManager] = useState({})
 
-  let { path, url } = useRouteMatch();
-
-
-  const addToTopicList = () => {
-
+  const goToThread = (data) => {
+    history.push(`/threads/${data.id}`, {
+      thread: data
+    })
   };
 
-  const forceRefresh =  async () => {
+  const subscribeThread = async (data) => {
+    console.log(threads);
     try {
-      const response = await axios(LIST_THREADS_CACHE);
-      setThreads(response.data.data)
-      console.log(response.data.data)
+      console.log(`SUBSCRIBER: ${data.thread.id}`)
+      const publicThread = await space.joinThread(data.thread.id);
+
+      let response = await axios({
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        data: JSON.stringify({
+          address: address,
+          thread: data.id,
+        }),
+        url: SUBSCRIBE_THREAD_CACHE
+      });
+
+      refresh();
+      goToThread(data);
     } catch (e) {
-      console.log(e);
+      console.log(e)
     }
   };
 
-
-  useEffect(() => {
-    forceRefresh().then(() => console.log('updated data')).catch((e) => console.log(e))
-  }, []);
-
   return (<>
-        <Switch>
-          <Route
-            exact
-            path={path + '/new'}
-            render={() => (
-              <NewThread
-                space={space}
-                profile={profile}
-                address={address}
-                did={did}
-                refresh={forceRefresh.bind(this)}
-              />
-            )}
-          />
-          <Route
-            exact
-            path={path + '/:threadId'}
-            render={() => (
-              <Chat
-                space={space}
-                profile={profile}
-                address={address}
-                did={did}
-                box={box}
-              />
-            )}
-          />
-        </Switch>
-
-
-
     <Typography component="h2">Threads</Typography>
-    <Link to={url + '/new'}>New thread</Link>
+    <Link to='/threads/new'>New thread</Link>
 
-    <ThreadGroup threads={threads} />
+    <ThreadGroup threads={threads} goThread={goToThread} joinThread={subscribeThread} address={address} />
   </>)
 };
 

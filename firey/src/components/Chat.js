@@ -8,6 +8,10 @@ import '../styles/index.css';
 import ThreeBoxComments from "../libs/3box-comments-react/src/index";
 import {withRouter} from "react-router-dom";
 import Typography from "@material-ui/core/Typography";
+import {Container} from "@material-ui/core";
+import Grid from "@material-ui/core/Grid";
+import CardContent from "@material-ui/core/CardContent";
+import Card from "@material-ui/core/Card";
 
 class Chat extends Component {
   constructor(props) {
@@ -125,36 +129,47 @@ class Chat extends Component {
     } = this.props;
 
     const thread = this.props.location.state.thread;
+    console.log(`CHAT: ${thread.thread.id}`)
 
     return (
-      <div>
-        <Typography component="h1">{thread.title}</Typography>
-        <Typography component="p">{thread.description}</Typography>
-        {space && space._name &&
-        <div>
+      <Container>
+        <Grid container>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography component="h1">{thread.title}</Typography>
+                <Typography component="p">{thread.description}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={8}>
+            {space && space._name &&
+            <Grid container>
 
-          <ThreeBoxComments
-            // required
-            spaceName={space._name}
-            threadName={thread.thread.name}
-            adminEthAddr={thread.thread.owner}
-            firstModeator={thread.thread.owner}
+              <ThreeBoxComments
+                // required
+                spaceName={space._name}
+                threadName={thread.thread.name}
+                adminEthAddr={thread.thread.owner}
+                firstModerator={thread.thread.owner}
+                threadId={thread.thread.id}
+                space={space}
+                // Required props for context A) & B)
+                box={box}
+                currentUserAddr={address}
 
-            // Required props for context A) & B)
-            box={box}
-            currentUserAddr={address}
 
-
-            // optional
-            members={false}
-            showCommentCount={10}
-            threadOpts={{}}
-            useHovers={false}
-            currentUser3BoxProfile={profile}
-            userProfileURL={address => `https://mywebsite.com/user/${address}`}
-          />
-        </div>}
-      </div>
+                // optional
+                members={false}
+                showCommentCount={10}
+                useHovers={false}
+                currentUser3BoxProfile={profile}
+                userProfileURL={address => `https://mywebsite.com/user/${address}`}
+              />
+            </Grid>}
+          </Grid>
+        </Grid>
+      </Container>
     );
   }
 }

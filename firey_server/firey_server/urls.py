@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path
 
 import forum
-from forum.views import create_thread, list_threads
+from forum.views import create_thread, list_threads, subscribe_thread
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     path(r'api/v0/thread/', create_thread),
     path(r'api/v0/threads/', list_threads),
+    path(r'api/v0/threads/subscribe', subscribe_thread)
 ]
