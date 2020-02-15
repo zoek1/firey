@@ -1,0 +1,3 @@
+[submodule "firey/src/libs/3box-comments-react"]
+	path = firey/src/libs/3box-comments-react
+	url = https://github.com/3box/3box-comments-react.git

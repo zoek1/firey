@@ -5,6 +5,9 @@ import Dialogue from './Dialogue';
 import Members from './Members';
 import AppModals from './AppModals';
 import '../styles/index.css';
+import ThreeBoxComments from "../libs/3box-comments-react/src/index";
+import {withRouter} from "react-router-dom";
+import Typography from "@material-ui/core/Typography";
 
 class Chat extends Component {
   constructor(props) {
@@ -111,70 +114,48 @@ class Chat extends Component {
   }
 
   render() {
-    const {
-      showNewTopicModal,
-      isMembersOnly,
-      showAddNewModeratorModal,
-      showAddNewMemberModal,
-      topicTitle,
-      threadData,
-      threadMemberList,
-      openTopics,
-      postMsg,
-      topicName,
-      threadMod,
-      threadMember,
-      threadModeratorList,
-      activeTopic,
-      threadACError
-    } = this.state;
+    console.log(this.props)
 
     const {
       address,
+      box,
       profile,
       did,
-      topicList,
-      topicManager,
-      addToTopicList
+      space,
     } = this.props;
 
-    return (
-      <React.Fragment>
-        <AppModals
-          handleAppModals={this.handleAppModals}
-          handleFormChange={this.handleFormChange}
-          updateThreadCapabilities={this.updateThreadCapabilities}
-          updateThreadError={this.updateThreadError}
-          showNewTopicModal={showNewTopicModal}
-          showAddNewModeratorModal={showAddNewModeratorModal}
-          showAddNewMemberModal={showAddNewMemberModal}
-          isMembersOnly={isMembersOnly}
-          topicName={topicName}
-          threadMod={threadMod}
-          threadMember={threadMember}
-          topicManager={topicManager}
-          addToTopicList={addToTopicList}
-          activeTopic={activeTopic}
-          threadACError={threadACError}
-        />
+    const thread = this.props.location.state.thread;
 
-        <div className="chatPage">
-          <Dialogue
-            handleFormChange={this.handleFormChange}
-            updateThreadPosts={this.updateThreadPosts}
-            updateThreadError={this.updateThreadError}
-            topicTitle={topicTitle}
-            threadData={threadData}
-            openTopics={openTopics}
-            myProfile={profile}
-            postMsg={postMsg}
-            activeTopic={activeTopic}
-            myAddress={address}
-            myDid={did}
+    return (
+      <div>
+        <Typography component="h1">{thread.title}</Typography>
+        <Typography component="p">{thread.description}</Typography>
+        {space && space._name &&
+        <div>
+
+          <ThreeBoxComments
+            // required
+            spaceName={space._name}
+            threadName={thread.thread.name}
+            adminEthAddr={thread.thread.owner}
+            firstModeator={thread.thread.owner}
+
+            // Required props for context A) & B)
+            box={box}
+            currentUserAddr={address}
+
+
+            // optional
+            members={false}
+            showCommentCount={10}
+            threadOpts={{}}
+            useHovers={false}
+            currentUser3BoxProfile={profile}
+            userProfileURL={address => `https://mywebsite.com/user/${address}`}
           />
-        </div>
-      </React.Fragment>
+        </div>}
+      </div>
     );
   }
 }
-export default Chat;
+export default withRouter(Chat);

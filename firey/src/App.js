@@ -9,8 +9,10 @@ import {
 import Box from '3box';
 import Login from "./components/Login";
 import Chat from "./components/Chat";
-import ForumHome from "./components/ForumHome";
+import NewThread from "./components/NewThread";
 import CssBaseline from "@material-ui/core/CssBaseline";
+import ForumHome from "./components/ForumHome";
+
 const BOX_SPACE = 'firey';
 
 
@@ -22,8 +24,6 @@ function App(props) {
   const [currentDid, setDid] = useState('');
   const [profile, setProfile] = useState({});
   const [isAppReady, setAppReady] = useState(false);
-  const [topics, setTopics] = useState([]);
-  const [topicManager, setTopicManager] = useState({})
   const [disableLogin, setDisableLogin] =  useState(false);
 
 
@@ -45,60 +45,34 @@ function App(props) {
     console.log(Did)
     setChatSpace(chatSpace);
 
-    history.push('/home');
+    //history.push('/home');
 
   };
 
   useEffect(() => {
     if (!box) {
-      history.push('/');
+      history.push('/threads');
       setAppReady(true);
       handleLogin();
     }
   }, [])
 
-  const addToTopicList = () => {
-
-  };
-
   return (
     <div className="App">
+      <CssBaseline />
       {isAppReady && (<React.Fragment>
-        <CssBaseline />
         <Switch>
-          {/*<Route
-            exact
-            path='/'
-            render={() => <Login handleLogin={handleLogin.bind(this)} disableLogin={disableLogin} />}
-          />*/}
-
-          <Route
-            exact
-            path='/home'
-            render={() => (
-              <ForumHome
-                space={chatSpace}
-                profile={profile}
-                address={currentAddress}
-                did={currentDid}
-              />
-            )}
-          />
-          <Route
-            exact
-            path='/chat'
-            render={() => (
-              <Chat
-                chatSpace={chatSpace}
-                profile={profile}
-                address={currentAddress}
-                did={currentDid}
-                topicList={topics}
-                topicManager={topicManager}
-                addToTopicList={addToTopicList.bind(this)}
-              />
-            )}
-          />
+          {<Route
+            path='/threads'
+            render={() => <ForumHome
+              history={history}
+              box={box}
+              address={currentAddress}
+              did={currentDid}
+              profile={profile}
+              isReady={isAppReady}
+              space={chatSpace}  />}
+          />}
         </Switch>
       </React.Fragment>)}
     </div>
