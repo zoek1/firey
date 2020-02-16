@@ -116,7 +116,7 @@ class Map extends Component {
 
     const zoom = ((this.props.presicion ? this.props.presicion[0] : 10) *20 ) /12;
     return (<>
-      <div style={{margin: '10px'}}>This locations reach ${points.length} POI</div>
+      <div style={{margin: '10px'}}>This locations reach {points.length} POI</div>
       <MapBox
         style='mapbox://styles/mapbox/streets-v8'
         containerStyle={this.props.style || {

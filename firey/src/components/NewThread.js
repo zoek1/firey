@@ -87,7 +87,7 @@ const NewThread = (props) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [joining, setJoining] = useState('open');
-  const [publishing, setPublishing] = useState('open');
+  const [publishing, setPublishing] = useState('badge');
   const [location, _setLocation] = useState({});
   const [publishingValue, _setPublishingValue] = useState("");
   const [joiningValue, setJoiningValue] = useState("");
@@ -160,11 +160,26 @@ const NewThread = (props) => {
   };
 
   const onCreate = () => {
-    console.log(!!title)
-    console.log(!!description)
-    console.log(Object.entries(location).length !== 0)
-    console.log(!!publishingValue)
-    if (!!title && !!description && Object.entries(location).length !== 0 && !!publishingValue) {
+    if (!title) {
+      alert('No title provided')
+      return;
+    }
+    if(!description) {
+      alert('No description provided')
+      return;
+    }
+
+    if(Object.entries(location).length === 0) {
+      alert('Needs participation in one place to create a Tread');
+      return;
+    }
+
+    if(publishingValue === '') {
+      alert('Indicate the publishing policy');
+      return;
+    }
+
+    if (!!title && !!description && Object.entries(location).length !== 0 && publishingValue !== '') {
       createThread(address, space, title, description,
         {location, presicion},
         {type: joining, value: joiningValue},
@@ -175,6 +190,8 @@ const NewThread = (props) => {
             thread: response.data
           })
       }).catch((e) => console.log(e))
+    } else {
+      alert('We could create the thread, try later.');
     }
 
   };
@@ -183,27 +200,89 @@ const NewThread = (props) => {
   return (<Container>
     <Grid container spacing={1}>
       <Grid item xs={12}>
-        <Paper>
-          <Typography component="h3">Add new thread</Typography>
+        <Paper style={{paddingTop: '20px'}}>
+          <Typography component="h3" style={{fontWeight: 'bold',  marginTop: '10px', fontSize: '1.6em', marginBottom: '20px'}}>Create Thread</Typography>
 
           <form noValidate autoComplete='off'>
-            <Grid container item xs={8}>
-              <TextField id='title' label='Thread Tile'
+            <Grid container item xs={8} style={{marginLeft: '4%'}}>
+              <TextField id='title' label='Thread Tile' style={{ width: '100%'}}
                          value={title}
                          onChange={ (e) => setTitle(e.target.value)}
               />
             </Grid>
-            <Grid container item xs={8} style={{height: '500px'}}>
-              <MdEditor id='description' label="Description"
-                value={description}
-                        style={{width: '100%'}}
-                renderHTML={(text) => mdParser.render(text)}
-                onChange={ ({html, text}) => setDescription(text)}
-                        config={{view: { menu: true, md: true, html: false }}}
-              />
+            <Grid container style={{marginTop: '15px', marginBottom: '15px'}}>
+              <Grid item xs={3}>
+                <FormControl style={{width: '200px'}}>
+                  <InputLabel id="privacy-label">Publishing</InputLabel>
+
+                  <Select labelId="privacy-label" id='privacy'
+                          value={publishing}
+                          onChange={ (e) => setPublishing(e.target.value)}>
+                    <MenuItem value="points">Points</MenuItem>
+                    <MenuItem value="challenge">Challenges</MenuItem>
+                    <MenuItem value="holding">FOAM amount</MenuItem>
+                    <MenuItem value="badge">Badge</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {publishing === 'points' && <Grid  item xs={4}>
+                <TextField style={{width: '100%'}} id='points' label="Min Number of Points"
+                           value={publishingValue}
+                           onChange={ (e) => setPublishingValue(e.target.value)}
+                           helperText={`Max allowed points ${limits.points}"`}
+                />
+              </Grid>}
+              {publishing === 'challenge' && <Grid  item xs={4}>
+                <TextField style={{width: '100%'}} id='description' label="Min Number of Challenges"
+                           value={publishingValue}
+                           onChange={ (e) => setPublishingValue(e.target.value)}
+                           helperText={`Max allowed challenges ${limits.challenge}`} />
+              </Grid>}
+              {publishing === 'holding' && <Grid  item xs={4}>
+                <TextField style={{width: '100%'}} id='holding' label="Min FOAM amount"
+                           value={publishingValue}
+                           onChange={ (e) => setPublishingValue(e.target.value)}
+                           helperText={`Max allowed ${Web3.utils.fromWei(limits.tokens ? limits.tokens.toString() : "")} FOAM`} />
+              </Grid>}
+              {publishing === 'badge' && <Grid item xs={4}>
+                <FormControl style={{width: '100%'}}>
+                  <InputLabel id="badge-label">Publishing</InputLabel>
+
+                  <Select labelId="badge-label" id='privacy'
+                          value={publishingValue}
+                          onChange={ (e) => setPublishingValue(e.target.value)}>
+                    { badges.map((b) => <MenuItem value={b.id}><img src={b.url} style={{maxWidth: '25px'}}/> {b.name} - {b.description}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>}
             </Grid>
-            <Grid container item xs={8}>
-            <FormControl>
+            <Grid container item xs={12} style={{marginTop: '15px', marginBottom: '15px'}}>
+
+              <Grid item xs={3}>
+                <FormControl style={{width: '200px'}}>
+                  <InputLabel id="presicion-label">Precision</InputLabel>
+                  <Select labelId="presicion-label" id='location'
+                          value={presicion}
+                          onChange={ (e) => setPresicion(e.target.value)}>
+                    <MenuItem value={1}>1</MenuItem>
+                    <MenuItem value={2}>2</MenuItem>
+                    <MenuItem value={3}>3</MenuItem>
+                    <MenuItem value={4}>4</MenuItem>
+                    <MenuItem value={5}>5</MenuItem>
+                    <MenuItem value={6}>6</MenuItem>
+                    <MenuItem value={7}>7</MenuItem>
+                    <MenuItem value={8}>8</MenuItem>
+                    <MenuItem value={9}>9</MenuItem>
+                    <MenuItem value={10}>10</MenuItem>
+                    <MenuItem value={11}>11</MenuItem>
+                    <MenuItem value={12}>12</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid  item xs={6}>
+            <FormControl style={{width: '100%'}}>
               <InputLabel id="location-label">Location</InputLabel>
               <Select labelId="location-label" id='location'
                       value={ locations.indexOf(location) }
@@ -212,78 +291,30 @@ const NewThread = (props) => {
 
               </Select>
             </FormControl>
-            <FormControl>
-              <InputLabel id="presicion-label">Precision</InputLabel>
-              <Select labelId="presicion-label" id='location'
-                      value={presicion}
-                      onChange={ (e) => setPresicion(e.target.value)}>
-                <MenuItem value={1}>1</MenuItem>
-                <MenuItem value={2}>2</MenuItem>
-                <MenuItem value={3}>3</MenuItem>
-                <MenuItem value={4}>4</MenuItem>
-                <MenuItem value={5}>5</MenuItem>
-                <MenuItem value={6}>6</MenuItem>
-                <MenuItem value={7}>7</MenuItem>
-                <MenuItem value={8}>8</MenuItem>
-                <MenuItem value={9}>9</MenuItem>
-                <MenuItem value={10}>10</MenuItem>
-                <MenuItem value={11}>11</MenuItem>
-                <MenuItem value={12}>12</MenuItem>
-              </Select>
-            </FormControl>
-            { location && location.coords && <Map noAreaSearch={true} presicion={[presicion]} location={{ point:location}}></Map>}
-
+              </Grid>
+              <Grid item xs={12}>
+                { location && location.coords &&
+                <Map style={{height: '30vh', width: '100%'}} noAreaSearch={true} presicion={[presicion]} location={{ point:location}} />}
+              </Grid>
 
             </Grid>
-            <Grid container item>
-              <FormControl>
-              <InputLabel id="privacy-label">Publishing</InputLabel>
-
-              <Select labelId="privacy-label" id='privacy'
-                      value={publishing}
-                      onChange={ (e) => setPublishing(e.target.value)}>
-                <MenuItem value="open">Open</MenuItem>
-                <MenuItem value="points">Points</MenuItem>
-                <MenuItem value="challenge">Challenges</MenuItem>
-                <MenuItem value="holding">FOAM amount</MenuItem>
-                <MenuItem value="badge">Badge</MenuItem>
-              </Select>
-            </FormControl>
-
-            {publishing === 'points' && <Grid container item xs={8}>
-              <TextField id='points' label="Min Number of Points"
-                         value={publishingValue}
-                         onChange={ (e) => setPublishingValue(e.target.value)}
-              helperText={`Max allowed points ${limits.points}"`}
-              />
-            </Grid>}
-            {publishing === 'challenge' && <Grid container item xs={8}>
-              <TextField id='description' label="Min Number of Challenges"
-                         value={publishingValue}
-                         onChange={ (e) => setPublishingValue(e.target.value)}
-                         helperText={`Max allowed challenges ${limits.challenge}`} />
-            </Grid>}
-            {publishing === 'holding' && <Grid container item xs={8}>
-              <TextField id='holding' label="Min Number of FOAM Tokens staked"
-                         value={publishingValue}
-                         onChange={ (e) => setPublishingValue(e.target.value)}
-                         helperText={`Max allowed ${Web3.utils.fromWei(limits.tokens ? limits.tokens.toString() : "")} FOAM`} />
-            </Grid>}
-            {publishing === 'badge' && <Grid container item xs={8}>
-              <FormControl>
-                <InputLabel id="badge-label">Publishing</InputLabel>
-
-                <Select labelId="badge-label" id='privacy'
-                        value={publishingValue}
-                        onChange={ (e) => setPublishingValue(e.target.value)}>
-                  { badges.map((b) => <MenuItem value={b.id}><img src={b.url} style={{maxWidth: '35px'}}/> {b.name} - {b.description}</MenuItem>)}
-                </Select>
-              </FormControl>
-            </Grid>}
-
+            <Grid container item style={{marginTop: '15px', marginBottom: '15px'}}>
+              <Grid container item xs={12} style={{height: '400px'}}>
+                <Typography component='p' style={{marginLeft: '4%'}}>Description</Typography>
+                <MdEditor id='description' label="Description"
+                          value={description}
+                          style={{width: '100%'}}
+                          renderHTML={(text) => mdParser.render(text)}
+                          onChange={ ({html, text}) => setDescription(text)}
+                          config={{view: { menu: true, md: true, html: false }}}
+                />
+              </Grid>
+              <div style={{ display: "flex", flexDirection: "row-reverse", marginTop: '25px', marginBottom: '25px',
+                width: '100%',
+                marginRight: '10%'}}>
             <Button disabled={!space} variant="contained" color="primary" onClick={onCreate}>
               Create {!space}
-            </Button>
+            </Button></div>
             </Grid>
           </form>
         </Paper>

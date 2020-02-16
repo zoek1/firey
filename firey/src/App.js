@@ -17,6 +17,13 @@ import {getListings} from "./libs/foam";
 import Web3 from "web3";
 import Button from "@material-ui/core/Button";
 import mapboxgl from 'mapbox-gl';
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import Container from "@material-ui/core/Container";
+import makeBlockie from "ethereum-blockies-base64";
+import {shortenEthAddr} from "./libs/3box-comments-react/src/utils";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 const BOX_SPACE = 'firey';
 const LIST_THREADS_CACHE = '/api/v0/threads/';
@@ -106,13 +113,40 @@ function App(props) {
       handleLogin()
     }
   }, [])
+  const updatedProfilePicture = profile.image ? `https://ipfs.infura.io/ipfs/${profile.image[0].contentUrl['/']}`
+    : currentAddress && makeBlockie(currentAddress);
 
   return (
     <div className="App">
-      {isAppReady &&
-        <Link to='/threads/new'>New thread</Link>
-      }
-      {!disableLogin && <Button onClick={handleLogin}>Login</Button> }
+      <AppBar position="static" style={{marginBottom: '15px'}}>
+        <Container>
+        <Toolbar style={{justifyContent: 'space-between', display: 'flex'}}>
+          <Link to='/'>
+          <Typography style={{color: "white"}} variant="h6">
+            Firey
+          </Typography> </Link>
+          <div style={{display: 'flex'}}>
+            <Link to='/'><Button style={{color: "white"}}>Home</Button></Link>
+            {!disableLogin && <Button style={{color: "white"}} onClick={handleLogin}>Login</Button> }
+
+          { disableLogin && !isAppReady &&<div style={{display: 'flex', alignItems: 'center'}}>
+          <CircularProgress color="secondary" /> Loading Profile...
+          </div>}
+          {isAppReady &&
+            <Link to='/threads/new'><Button style={{color: "white"}}>New thread</Button></Link>
+          }
+          { Object.keys(profile).length !== 0 && <div style={{display: 'flex', alignItems: 'center'}}>
+              <img src={updatedProfilePicture} alt="Profile" className="input_user" style={{position: 'initial'}}/>
+              {profile.name || shortenEthAddr(currentAddress)}
+            </div>
+          }
+          </div>
+
+        </Toolbar>
+        </Container>
+      </AppBar>
+
+
       <CssBaseline />
       <React.Fragment>
         <Switch>
