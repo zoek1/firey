@@ -12,6 +12,84 @@ import {Container} from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import CardContent from "@material-ui/core/CardContent";
 import Card from "@material-ui/core/Card";
+import Web3 from "web3";
+import Map from "./Map";
+
+const canPost = (publishing, publishingValue, location, precision, limits, badges, locations) => {
+  const decimal_re = /(^-?[0-9.]+)$/;
+  const uint_re = /^\d+$/;
+
+  const BN = Web3.utils.BN;
+
+  if (!location) {
+    console.log('Mal formed post Requires location to comments')
+    return false;
+  }
+  const geohash = location.slice(0, precision);
+  let hasParticipation;
+  for(let i=0; i<locations.length;i++) {
+    let test = locations[i].geohash.slice(0, precision);
+    if (test === geohash) {
+      hasParticipation = true;
+      console.log('== Has participation')
+      break;
+    }
+  }
+
+  if (!hasParticipation) {
+    console.log('== Requires participation')
+    return false;
+  }
+
+
+
+  if (publishing === 'holding') {
+    if (!publishingValue.match(decimal_re)) return false;
+
+    let requestAmount = Web3.utils.toWei(publishingValue)
+
+    if (new BN(requestAmount).gte(new BN(limits.tokens))) {
+      console.log('== has the amount')
+      return true;
+
+    }
+  }
+
+  if (publishing === 'points' ) {
+    if (publishingValue >= limits.points) {
+      console.log('== has the points')
+      return true;
+    }
+  }
+  if (publishing === 'challenge') {
+    if (publishingValue >= limits.challenge) {
+      console.log('== Has the challenges')
+      return true;
+    }
+  }
+
+  const checkBadge = (badge, limits) => {
+    console.log(`== ${badge.req.holding}  <= ${Web3.utils.fromWei(limits.tokens)}`)
+    if (new BN(Web3.utils.toWei(badge.req.holding.toString())).gt(new BN(limits.tokens))) return false;
+    console.log(`== ${badge.req.challenge} <= ${limits.challenge}`)
+    if (badge.req.challenge > limits.challenge) return false;
+    console.log(`== ${badge.req.points} <= ${limits.points}`)
+    if (badge.req.points > limits.points) return false;
+    console.log('== Match badge requirements')
+    return true;
+  };
+
+  if (publishing === 'badge' ) {
+    let badge = badges[publishingValue];
+    let result = checkBadge(badge, limits)
+    console.log(`== BATCH: ${result}`)
+    return result;
+  }
+
+  console.log('No allowed to post')
+  return false;
+};
+
 
 class Chat extends Component {
   constructor(props) {
@@ -127,13 +205,17 @@ class Chat extends Component {
       did,
       space,
       badges,
+      limits,
+      locations,
     } = this.props;
 
     const thread = this.props.location.state.thread
     const {
-      publishing
+      publishing,
+      location
     } = this.props.location.state.thread;
     console.log(`CHAT: ${thread.thread.id}`)
+    console.log(this.props.location.state.thread);
     let badge = badges[publishing.value]
 
     return (
@@ -171,6 +253,8 @@ class Chat extends Component {
               </div>
               }
             </div>
+            { location.point && location.point.geohash && <Map location={location}></Map>}
+
             {space && space._name &&
             <Grid container>
 
@@ -185,7 +269,7 @@ class Chat extends Component {
                 // Required props for context A) & B)
                 box={box}
                 currentUserAddr={address}
-
+                canPost={() =>  canPost(publishing.policy, publishing.value, location.point.geohash, location.precision, limits, badges, locations) }
 
                 // optional
                 members={false}

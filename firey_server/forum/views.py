@@ -1,3 +1,4 @@
+import ast
 import json
 
 from django.http import JsonResponse
@@ -94,12 +95,15 @@ def get_threads(request, pk):
 
 
 def to_dict(thread):
+
+    jsonLocation = ast.literal_eval(thread.location)
+
     return {
         "id": thread.id,
         "title": thread.title,
         "description": thread.description,
         "location": {
-          "geohash": thread.location,
+          "point":  jsonLocation,
           "precision": thread.precision,
           "bounding_box": {},
           "coords": []

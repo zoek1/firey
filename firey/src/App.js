@@ -4,7 +4,7 @@ import './App.css';
 import {
   Switch,
   Route,
-  withRouter
+  withRouter, Link
 } from 'react-router-dom';
 import Box from '3box';
 import Login from "./components/Login";
@@ -15,6 +15,8 @@ import ForumHome from "./components/ForumHome";
 import * as axios from "axios";
 import {getListings} from "./libs/foam";
 import Web3 from "web3";
+import Button from "@material-ui/core/Button";
+import mapboxgl from 'mapbox-gl';
 
 const BOX_SPACE = 'firey';
 const LIST_THREADS_CACHE = '/api/v0/threads/';
@@ -46,11 +48,11 @@ function App(props) {
     setLocations(foam_user.listings);
     let user_limits = {
       id: foam_user.id,
-      challenge: foam_user.numChallenges,
-      votes: foam_user.numVotesRevealed,
-      tokens: foam_user.totalAmountStaked,
+      challenge: foam_user.numChallenges || 0,
+      votes: foam_user.numVotesRevealed || 0,
+      tokens: foam_user.totalAmountStaked || '0',
       points: foam_user.listings.length,
-      rewards: foam_user.totalMapRewards,
+      rewards: foam_user.totalMapRewards || 0,
     };
     setLimits(user_limits)
   };
@@ -75,6 +77,7 @@ function App(props) {
     setDid(Did);
     console.log(Did)
     setChatSpace(chatSpace);
+    setAppReady(true);
 
     await listing(address[0]);
 
@@ -101,15 +104,17 @@ function App(props) {
   useEffect(() => {
     if (!box) {
       history.push('/');
-      setAppReady(true);
-      handleLogin();
     }
   }, [])
 
   return (
     <div className="App">
+      {isAppReady &&
+        <Link to='/threads/new'>New thread</Link>
+      }
+      {!disableLogin && <Button onClick={handleLogin}>Login</Button> }
       <CssBaseline />
-      {isAppReady && (<React.Fragment>
+      <React.Fragment>
         <Switch>
           <Route
             exact
@@ -121,6 +126,7 @@ function App(props) {
                 address={currentAddress}
                 did={currentDid}
                 badges={badges}
+                isReady={isAppReady}
                 refresh={forceRefresh.bind(this)}
                 locations={locations}
                 limits={limits}
@@ -136,9 +142,12 @@ function App(props) {
                 profile={profile}
                 address={currentAddress}
                 badges={badges}
+                isReady={isAppReady}
                 did={currentDid}
                 box={box}
                 refresh={forceRefresh.bind(this)}
+                limits={limits}
+                locations={locations}
               />
             )}
           />
@@ -157,11 +166,12 @@ function App(props) {
               space={chatSpace}
               threads={threads}
               refresh={forceRefresh.bind(this)}
+              locations={locations}
             />}
           />
 
         </Switch>
-      </React.Fragment>)}
+      </React.Fragment>
     </div>
   );
 }

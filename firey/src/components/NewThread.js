@@ -13,6 +13,7 @@ import {getListings} from "../libs/foam";
 import Web3 from "web3";
 import * as axios from "axios";
 import {withRouter} from "react-router-dom";
+import Map from "./Map";
 
 const MODERATOR_ADDRESS = '0xed628E601012cC6Fd57Dc0cede2A527cdc86A221';
 const PREFIX_CHANNEL_NAME = 'test_firey';
@@ -98,9 +99,9 @@ const NewThread = (props) => {
      return false;
   };
 
-  const decimal_re = /(^-?[0-9.]+)$/;
-  const uint_re = /^\d+$/;
   const setPublishingValue = (val) => {
+    const decimal_re = /(^-?[0-9.]+)$/;
+    const uint_re = /^\d+$/;
 
     const BN = Web3.utils.BN;
     if (val === '') {
@@ -136,7 +137,7 @@ const NewThread = (props) => {
     }
 
     const checkBadge = (badge, limits) => {
-      if (new BN(badge.req.holding).gt(new BN(limits.tokens))) return false;
+      if (new BN(Web3.utils.toWei(badge.req.holding.toString())).gt(new BN(limits.tokens))) return false;
       if (badge.req.challenge > limits.challenge) return false;
       if (badge.req.points > limits.points) return false;
 
@@ -155,9 +156,9 @@ const NewThread = (props) => {
   const onCreate = () => {
     console.log(!!title)
     console.log(!!description)
-    console.log(!!location)
-    console.log(!!publishing)
-    if (!!title && !!description && location && !!publishing) {
+    console.log(Object.entries(location).length !== 0)
+    console.log(!!publishingValue)
+    if (!!title && !!description && Object.entries(location).length !== 0 && !!publishingValue) {
       createThread(address, space, title, description,
         {location, presicion},
         {type: joining, value: joiningValue},
@@ -172,6 +173,7 @@ const NewThread = (props) => {
 
   };
 
+  console.log(location)
   return (<Container>
     <Grid container spacing={1}>
       <Grid item xs={12}>
@@ -221,6 +223,9 @@ const NewThread = (props) => {
                 <MenuItem value={12}>12</MenuItem>
               </Select>
             </FormControl>
+            { location && location.coords && <Map noAreaSearch={true} presicion={[presicion]} location={{ point:location}}></Map>}
+
+
             </Grid>
             <Grid container item>
               <FormControl>

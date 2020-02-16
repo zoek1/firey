@@ -1,4 +1,4 @@
-const Geohash = require('latlon-geohash');
+const Geohash = require('latlon-geohash').default;
 const web3 = require('web3');
 
 const hex2dec = (hex) => parseInt(hex, 16);
@@ -13,3 +13,10 @@ const getBoundingBox = (geohash) => {
 const getFOAM = (foamAmount) => web3.utils.fromWei(foamAmount, 'ether');
 
 const BN = (number) => web3.utils.toBN(number);
+
+module.exports = {
+  coords2geaohash,
+  getBoundingBox,
+  getFOAM,
+  hex2dec
+};

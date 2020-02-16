@@ -92,22 +92,24 @@ const ForumHome = (props) => {
   const subscribeThread = async (data) => {
     console.log(threads);
     try {
-      console.log(`SUBSCRIBER: ${data.thread.id}`)
-      const publicThread = await space.joinThread(data.thread.id);
+      if (isReady) {
+        console.log(`SUBSCRIBER: ${data.thread.id}`)
+        const publicThread = await space.joinThread(data.thread.id);
 
-      let response = await axios({
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        data: JSON.stringify({
-          address: address,
-          thread: data.id,
-        }),
-        url: SUBSCRIBE_THREAD_CACHE
-      });
-
+        let response = await axios({
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json'
+          },
+          data: JSON.stringify({
+            address: address,
+            thread: data.id,
+          }),
+          url: SUBSCRIBE_THREAD_CACHE
+        });
+      }
       refresh();
+
       goToThread(data);
     } catch (e) {
       console.log(e)
@@ -116,7 +118,6 @@ const ForumHome = (props) => {
 
   return (<>
     <Typography component="h2">Threads</Typography>
-    <Link to='/threads/new'>New thread</Link>
 
     <ThreadGroup threads={threads} goThread={goToThread} joinThread={subscribeThread} address={address} badges={badges}/>
   </>)

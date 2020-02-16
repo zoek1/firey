@@ -61,6 +61,7 @@ const getUserData = (address) => {
 
 const getListings = async (address) => {
   let partial_info = await getUserData('0xc7d47d741007f1f4488b4ce23ec0b0ffa592f680');
+  // let partial_info = await getUserData(address);
   let _listings = partial_info.data.user ? partial_info.data.user.listings : [];
   let listings = await retriveListingData(_listings);
 
