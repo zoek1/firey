@@ -25,6 +25,8 @@ import makeBlockie from "ethereum-blockies-base64";
 import {shortenEthAddr} from "./libs/3box-comments-react/src/utils";
 import CircularProgress from "@material-ui/core/CircularProgress";
 
+const firey = require('./assets/firey.png');
+
 const BOX_SPACE = 'firey';
 const LIST_THREADS_CACHE = '/api/v0/threads/';
 
@@ -118,19 +120,24 @@ function App(props) {
 
   return (
     <div className="App">
-      <AppBar position="static" style={{marginBottom: '15px'}}>
+      <AppBar position="static" style={{marginBottom: '15px', backgroundColor: '#C20530'}}>
         <Container>
         <Toolbar style={{justifyContent: 'space-between', display: 'flex'}}>
           <Link to='/'>
+            <div style={{display: 'flex', alignItems: 'center'}}>
+            <img src={firey} style={{    minWidth: '56px',
+              minHeight: '56px',
+              maxWidth: '56px',
+              maxHeight: '56px'}} alt=""/>
           <Typography style={{color: "white"}} variant="h6">
             Firey
-          </Typography> </Link>
+          </Typography> </div></Link>
           <div style={{display: 'flex'}}>
             <Link to='/'><Button style={{color: "white"}}>Home</Button></Link>
             {!disableLogin && <Button style={{color: "white"}} onClick={handleLogin}>Login</Button> }
 
           { disableLogin && !isAppReady &&<div style={{display: 'flex', alignItems: 'center'}}>
-          <CircularProgress color="secondary" /> Loading Profile...
+          <CircularProgress style={{color: 'white'}} color="primary" /> Loading Profile...
           </div>}
           {isAppReady &&
             <Link to='/threads/new'><Button style={{color: "white"}}>New thread</Button></Link>
