@@ -1,6 +1,6 @@
 import React, {Component} from "react";
-import {getBoundingBox} from "../libs/convertions";
-import ReactMapboxGl, { Layer, Feature } from 'react-mapbox-gl';
+import {getBoundingBox, getFOAM} from "../libs/convertions";
+import ReactMapboxGl, {Layer, Feature, Popup} from 'react-mapbox-gl';
 const Geohash = require("latlon-geohash").default;
 
 const FOAM_PENDING_COLOR = [46, 124, 230];
@@ -25,7 +25,7 @@ function getPointColor(state) {
 
 function getPointCoords(geohash) {
   const coords = Geohash.decode(geohash);
-  return [coords['lon'], coords['lat'], 0];
+  return [coords['lon'], coords['lat']];
 }
 
 const MAX_ZOOM = 16;
@@ -33,9 +33,10 @@ const RADIUS_SCALE = 50;
 const RADIUS_MIN_PIXELS = 1;
 const RADIUS_MAX_PIXELS = 2.5;
 
-const MapComponent = ReactMapboxGl({
-  accessToken:
-    ''
+const MapBox = ReactMapboxGl({
+    minZoom: 8,
+    maxZoom: 15,
+    accessToken: 'pk.eyJ1Ijoiem9layIsImEiOiJjaWc0b2ZmaXozMTlzdXNtNXR4bzF3bWI3In0.Qiyq_HteQro9bmzovEa-3w'
 });
 
 
@@ -45,19 +46,21 @@ class Map extends Component {
     console.log(props);
     const {location} = props;
     const point = location.point.coords;
-    const boundingBox = getBoundingBox(location.point.geohash.slice(0, props.presicion[0]));
+
+    const boundingBox = getBoundingBox(location.point.geohash.slice(0, props.presicion ? props.presicion[0] : 10));
     const zoom = props.presicion;
     this.state = {
       // Map layout
       point,
       boundingBox: [getPointCoords(boundingBox['sw']), getPointCoords(boundingBox['ne'])],
       zoom,
-      data: []
+      data: [],
+      pointer: null
     }
   }
 
   componentDidMount() {
-    const DATA_URL = 'https://map-api-direct.foam.space/poi/filtered?swLng=' + [0][0] + '&swLat=' + this.state.boundingBox[0][1] + '&neLng=' + this.state.boundingBox[1][0] + '&neLat=' + this.state.boundingBox[1][1] + '&status=application&status=listing&status=challenged&status=removed&sort=most_value&limit=500&offset=0'
+    const DATA_URL = 'https://map-api-direct.foam.space/poi/filtered?swLng=' + this.state.boundingBox[0][0] + '&swLat=' + this.state.boundingBox[0][1] + '&neLng=' + this.state.boundingBox[1][0] + '&neLat=' + this.state.boundingBox[1][1] + '&status=application&status=listing&status=challenged&status=removed&sort=most_value&limit=500&offset=0'
     fetch(DATA_URL)
       .then(response => response.json())
       .then(data => {
@@ -67,36 +70,90 @@ class Map extends Component {
   }
 
   componentWillReceiveProps(newProps) {
-    const _boundingBox = getBoundingBox(newProps.location.point.geohash.slice(0, newProps.presicion[0]));
+    const _boundingBox = getBoundingBox(newProps.location.point.geohash.slice(0, newProps.presicion ? newProps.presicion[0] : 10));
     const boundingBox = [getPointCoords(_boundingBox['sw']), getPointCoords(_boundingBox['ne'])];
     const DATA_URL = 'https://map-api-direct.foam.space/poi/filtered?swLng=' + boundingBox[0][0] + '&swLat=' + boundingBox[0][1] + '&neLng=' + boundingBox[1][0] + '&neLat=' + boundingBox[1][1] + '&status=application&status=listing&status=challenged&status=removed&sort=most_value&limit=500&offset=0'
     fetch(DATA_URL)
       .then(response => response.json())
       .then(data => {
-        this.setState({data})
+        this.setState((prevState, props) => {
+          return {...prevState, data: data};
+        })
         console.log(data)
       })
   }
 
+  onDrag = () => {
+    if (this.state.station) {
+      this.setState({ station: undefined });
+    }
+  };
+
+  onToggleHover(cursor, { map }) {
+    map.getCanvas().style.cursor = cursor;
+  }
+
+  markerClick = (pointer, { feature }) => {
+    this.setState({
+      center: feature.geometry.coordinates,
+      zoom: [14],
+      pointer
+    });
+  };
+
+
   render(){
-    console.log(this.state)
-    return (
-      <MapComponent
-        style="mapbox://styles/mapbox/dark-v10"
-        containerStyle={{
+    console.log(this.state.data)
+    const points = this.state.data.map( (e, i) => {
+      const coords = getPointCoords(e.geohash);
+      return <Feature key={i} coordinates={coords}
+                      onMouseEnter={this.onToggleHover.bind(this, 'pointer')}
+                      onMouseLeave={this.onToggleHover.bind(this, '')}
+                      onClick={this.markerClick.bind(this, this.state.data[i])}
+      />
+      }
+    );
+
+    const zoom = ((this.props.presicion ? this.props.presicion[0] : 10) *20 ) /12;
+    return (<>
+      <div style={{margin: '10px'}}>This locations reach ${points.length} POI</div>
+      <MapBox
+        style='mapbox://styles/mapbox/streets-v8'
+        containerStyle={this.props.style || {
           height: '30vh',
           width: '40vw'
         }}
         maxZoom={MAX_ZOOM}
         center={this.props.location.point.coords}
-        zoom={this.props.presicion}
+        zoom={[Math.round(zoom)]}
       >
         <Layer type="symbol" id="marker" layout={{ 'icon-image': 'marker-15' }}>
-          { this.state.data.map( (e) =>
-          <Feature coordinates={getPointCoords(e.geohash)} />
-          )}
+          { points }
         </Layer>
-      </MapComponent>);
+        { this.state.pointer &&
+          <Popup coordinates={getPointCoords(this.state.pointer.geohash)}>
+            <div style={{
+            'background': 'white',
+            'color': '#3f618c',
+            'fontWeight': 400,
+            'padding': '5px',
+            'borderRadius': '2px',
+            }}>
+              <h3>{this.state.pointer.name}</h3>
+              <div><span style={{fontWeight: "bold"}}>Status</span>: <i>{this.state.pointer.state.status.type}</i></div>
+              <div><span style={{fontWeight: "bold"}}>Deposit</span>: <em>{getFOAM(this.state.pointer.state.deposit)} FOAM</em></div>
+              <div> <ul style={{display: 'flex', listStyle: 'none'}}>
+                <span style={{fontWeight: "bold"}}>Tags</span>:
+                { this.state.pointer.tags.map((tag) =>
+                  <li style={{marginLeft: '3px'}}>{tag},</li>
+                )}
+                </ul>
+            </div>
+            </div>
+
+          </Popup>
+        }
+      </MapBox></>);
   }
 }
 

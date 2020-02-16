@@ -14,6 +14,10 @@ import Web3 from "web3";
 import * as axios from "axios";
 import {withRouter} from "react-router-dom";
 import Map from "./Map";
+import MarkdownIt from 'markdown-it'
+import MdEditor from 'react-markdown-editor-lite'
+// import style manually
+import 'react-markdown-editor-lite/lib/index.css';
 
 const MODERATOR_ADDRESS = '0xed628E601012cC6Fd57Dc0cede2A527cdc86A221';
 const PREFIX_CHANNEL_NAME = 'test_firey';
@@ -66,6 +70,8 @@ const createThread = async (address, space, title, description, locationArea, jo
   return (await response);
 };
 
+const mdParser = new MarkdownIt(/* Markdown-it options */);
+
 const NewThread = (props) => {
   const {
     address,
@@ -85,7 +91,7 @@ const NewThread = (props) => {
   const [location, _setLocation] = useState({});
   const [publishingValue, _setPublishingValue] = useState("");
   const [joiningValue, setJoiningValue] = useState("");
-  const [presicion, setPresicion] = useState(10);
+  const [presicion, setPresicion] = useState(6);
 
   const setLocation = (location) => {
     const geohash = location.geohash.slice(0, presicion);
@@ -187,11 +193,13 @@ const NewThread = (props) => {
                          onChange={ (e) => setTitle(e.target.value)}
               />
             </Grid>
-            <Grid container item xs={8}>
-              <TextField id='description' label="Description"
+            <Grid container item xs={8} style={{height: '500px'}}>
+              <MdEditor id='description' label="Description"
                 value={description}
-                         onChange={ (e) => setDescription(e.target.value)}
-
+                        style={{width: '100%'}}
+                renderHTML={(text) => mdParser.render(text)}
+                onChange={ ({html, text}) => setDescription(text)}
+                        config={{view: { menu: true, md: true, html: false }}}
               />
             </Grid>
             <Grid container item xs={8}>

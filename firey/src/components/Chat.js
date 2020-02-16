@@ -14,6 +14,16 @@ import CardContent from "@material-ui/core/CardContent";
 import Card from "@material-ui/core/Card";
 import Web3 from "web3";
 import Map from "./Map";
+import AppBar from "@material-ui/core/AppBar";
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
+import Box from "@material-ui/core/Box";
+import makeStyles from "@material-ui/core/styles/makeStyles";
+import Link from "@material-ui/core/Link";
+import CardActions from "@material-ui/core/CardActions";
+import Button from "@material-ui/core/Button";
+const ReactMarkdown = require('react-markdown')
+
 
 const canPost = (publishing, publishingValue, location, precision, limits, badges, locations) => {
   const decimal_re = /(^-?[0-9.]+)$/;
@@ -48,7 +58,7 @@ const canPost = (publishing, publishingValue, location, precision, limits, badge
 
     let requestAmount = Web3.utils.toWei(publishingValue)
 
-    if (new BN(requestAmount).gte(new BN(limits.tokens))) {
+    if (new BN(requestAmount).lt(new BN(limits.tokens))) {
       console.log('== has the amount')
       return true;
 
@@ -90,6 +100,36 @@ const canPost = (publishing, publishingValue, location, precision, limits, badge
   return false;
 };
 
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <Typography
+      component="div"
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box p={3}>{children}</Box>}
+    </Typography>
+  );
+}
+
+const styles = {
+  title: {
+    fontSize: '1.2em',
+    fontWeight: 'bold'
+  }
+}
 
 class Chat extends Component {
   constructor(props) {
@@ -110,94 +150,16 @@ class Chat extends Component {
       showAddNewModeratorModal: false,
       showAddNewMemberModal: false,
       isMembersOnly: false,
+      showMap: 0
     };
   }
 
-  handleAppModals = (modalName) => {
-    const modalStateName = `show${modalName}`;
-    const modalState = this.state[modalStateName];
-    this.setState({ [modalStateName]: !modalState });
-  }
-
-  handleViewTopic = (topic) => {
-    const { openTopics } = this.state;
-    const { chatSpace, topicManager } = this.props;
-
-    // clean topic state
-    this.setState({
-      topicTitle: topic,
-      threadData: [],
-      threadMemberList: [],
-      threadModeratorList: [],
-    });
-
-    // if topic fetched before, use again
-    if (openTopics[topic]) {
-      this.setState({ activeTopic: openTopics[topic] }, () => {
-        this.updateThreadPosts();
-        this.updateThreadCapabilities();
-      });
-      return
-    }
-
-    // fetch topic data
-    topicManager.getOwner(topic, (err, owner) => {
-      topicManager.getMembers(topic, async (err, members) => {
-        // Step 3 - join Thread
-        const thread = 'the thread'
-        openTopics[topic] = thread;
-        this.setState({ activeTopic: openTopics[topic] });
-
-        this.updateThreadPosts();
-        this.updateThreadCapabilities();
-        // Step 3 - add listener functions
-
-      })
-    })
-  }
-
-  updateThreadPosts = async () => {
-    const { activeTopic } = this.state;
-    this.updateThreadError();
-
-    let threadData = []
-    // Step 3 - get posts in thread
-    const posts = []
-    threadData.push(...posts)
-    this.setState({ threadData });
-  }
-
-  updateThreadCapabilities = async () => {
-    const { activeTopic } = this.state;
-
-    // add thread members to state
-    let threadMemberList = [];
-    // Step 4 - members of thread
-    const members = []
-    threadMemberList.push(...members)
-    this.setState({ threadMemberList });
-
-    // add thread mods to state
-    let threadModeratorList = [];
-    // Step 4 - moderators of thread
-    const moderators = []
-    threadModeratorList.push(...moderators)
-    this.setState({ threadModeratorList });
-  }
-
-  handleFormChange = (e, property) => { // for inputs in app modals
-    const value = e ? e.target.value : '';
-    this.setState({ [property]: value });
-  }
-
-  updateThreadError = (e = '') => {
-    console.log('error', e);
-    this.setState({ threadACError: e });
-  }
+  handleChange = (event, value) => { // for inputs in app modals
+    console.log(value)
+    this.setState({showMap: value });
+  };
 
   render() {
-    console.log(this.props)
-
     const {
       address,
       box,
@@ -207,81 +169,119 @@ class Chat extends Component {
       badges,
       limits,
       locations,
+      history
     } = this.props;
 
-    const thread = this.props.location.state.thread
+    if (this.props.location.state === undefined) {
+      history.push('/')
+      return <></>
+    }
+
+    const thread = this.props.location.state.thread;
     const {
       publishing,
       location
     } = this.props.location.state.thread;
-    console.log(`CHAT: ${thread.thread.id}`)
+    console.log(`CHAT: ${thread.thread.id}`);
     console.log(this.props.location.state.thread);
-    let badge = badges[publishing.value]
+    let badge = badges[publishing.value];
 
     return (
-      <Container>
+      <>
         <Grid container>
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={8} style={{paddingLeft: '15px', paddingRight: '15px'}}>
             <Card>
               <CardContent>
-                <Typography component="h1">{thread.title}</Typography>
-                <Typography component="p">{thread.description}</Typography>
+                  <Tabs value={this.state.showMap} onChange={this.handleChange.bind(this)} aria-label="simple tabs example">
+                    <Tab label="Show Post" {...a11yProps(0)} />
+                    <Tab label="Show Map" {...a11yProps(1)} />
+                  </Tabs>
+                <TabPanel value={this.state.showMap} index={0}>
+
+                    <ReactMarkdown source={thread.description}/>
+                </TabPanel>
+                <TabPanel value={this.state.showMap} index={1}>
+                  {location.point && location.point.geohash && <Map style={{height: '70vh', width: '100%'}} location={location}/>}
+                </TabPanel>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={8}>
-            <div style={{display: 'flex'}}>
-              <Typography component="label">Access</Typography>
-              { badge && publishing.policy === 'badge' &&
-              <div>
-                <img style={{maxWidth: 50}} src={badge.url} alt=""/><br/>
-                <Typography component={'label'}>{badge.name}</Typography>
-              </div>}
-              { (publishing.policy === 'points' || publishing.policy === 'badge') && <div>
-                <img style={{maxWidth: 35}} src='https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png' alt=""/>
-                { badge  && publishing.policy === 'badge' ? badge.req.points : publishing.value }
-              </div>}
-              {(publishing.policy === 'holding' || publishing.policy === 'badge')  &&
-              <div>
-                <img style={{maxWidth: 35}} src="https://i.ya-webdesign.com/images/game-coin-png-1.png" alt=""/>
-                {badge  && publishing.policy === 'badge' ? badge.req.holding : publishing.value }
-              </div>}
-              {(publishing.policy === 'challenge' || publishing.policy === 'badge') &&
-              <div>
-                <img style={{maxWidth: 35}} src="https://i7.pngguru.com/preview/449/891/625/minecraft-diamond-sword-video-game-mob-ice-axe.jpg" alt=""/>
-                {badge && publishing.policy === 'badge' ? badge.req.challenge :  publishing.value }
-              </div>
-              }
-            </div>
-            { location.point && location.point.geohash && <Map location={location}></Map>}
+          <Grid item xs={12} md={4} style={{paddingLeft: '10px', paddingRight: '10px',}}>
 
+            <Card>
+              <CardContent>
+                <Typography component="h1" style={styles.title}>{thread.title}</Typography>
+                <Typography style={{fontSize: '1em'}} component="p" >{thread.location.point.name}</Typography>
+                {thread.location.point.coords &&
+                <Typography style={{fontSize: '0.8em'}} component="p">Coords: {thread.location.point.coords.lat}, {thread.location.point.coords.lon}</Typography>}
+
+                <Typography style={{fontSize: '1em'}} component="p" >{thread.location.point.address}</Typography>
+
+                <Typography style={{marginTop: '15px', fontWeight: 500, marginBottom: '15px'}} component="p">Level</Typography>
+                <div style={{display: 'flex', justifyContent: "space-around"}}>
+                  { badge && publishing.policy === 'badge' &&
+                  <div>
+                    <img style={{maxWidth: 50}} src={badge.url} alt=""/><br/>
+                    <Typography component={'label'}>{badge.name}</Typography>
+                  </div>}
+                  <div>
+                  <div style={{display: 'flex', justifyContent: "space-around" }}>
+                  { (publishing.policy === 'points' || publishing.policy === 'badge') &&
+                  <div style={{ width: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <img style={{maxWidth: '35px'}} src='https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png' alt=""/>
+                    { badge  && publishing.policy === 'badge' ? badge.req.points : publishing.value }
+                  </div>}
+                  {(publishing.policy === 'holding' || publishing.policy === 'badge')  &&
+                  <div style={{ width: '80px',display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <img style={{maxWidth: '35px'}} src="https://i.ya-webdesign.com/images/game-coin-png-1.png" alt=""/>
+                    {badge  && publishing.policy === 'badge' ? badge.req.holding : publishing.value }
+                  </div>}
+                  {(publishing.policy === 'challenge' || publishing.policy === 'badge') &&
+                  <div style={{ width: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <img style={{maxWidth: '35px'}} src="https://i7.pngguru.com/preview/449/891/625/minecraft-diamond-sword-video-game-mob-ice-axe.jpg" alt=""/>
+                    {badge && publishing.policy === 'badge' ? badge.req.challenge :  publishing.value }
+                  </div>
+                  }</div>
+                    <br/>
+                    <Typography component={'label'}>Requirements</Typography>
+                  </div>
+                </div>
+              </CardContent>
+              <CardActions>
+                {thread.location.point.coords &&
+                <Link href={`https://map.foam.space/#/at/?lng=${thread.location.point.coords.lon}&lat=${thread.location.point.coords.lat}&zoom=${thread.location.precision[0]}`}><Button>Go to FOAM MAP</Button></Link>}
+              </CardActions>
+            </Card>
             {space && space._name &&
-            <Grid container>
+            <Grid container  style={{marginTop: '20px'}}>
+              <Card>
+                <CardContent style={{paddingRight: '15px', paddingLeft: '15px'}}>
+                  <ThreeBoxComments
+                    // required
+                    spaceName={space._name}
+                    threadName={thread.thread.name}
+                    adminEthAddr={thread.thread.owner}
+                    firstModerator={thread.thread.owner}
+                    threadId={thread.thread.id}
+                    space={space}
+                    // Required props for context A) & B)
+                    box={box}
+                    currentUserAddr={address}
+                    canPost={() =>  canPost(publishing.policy, publishing.value, location.point.geohash, location.precision, limits, badges, locations) }
 
-              <ThreeBoxComments
-                // required
-                spaceName={space._name}
-                threadName={thread.thread.name}
-                adminEthAddr={thread.thread.owner}
-                firstModerator={thread.thread.owner}
-                threadId={thread.thread.id}
-                space={space}
-                // Required props for context A) & B)
-                box={box}
-                currentUserAddr={address}
-                canPost={() =>  canPost(publishing.policy, publishing.value, location.point.geohash, location.precision, limits, badges, locations) }
-
-                // optional
-                members={false}
-                showCommentCount={10}
-                useHovers={false}
-                currentUser3BoxProfile={profile}
-                userProfileURL={address => `https://mywebsite.com/user/${address}`}
-              />
+                    // optional
+                    members={false}
+                    showCommentCount={10}
+                    useHovers={false}
+                    currentUser3BoxProfile={profile}
+                    userProfileURL={address => `https://mywebsite.com/user/${address}`}
+                  />
+                </CardContent>
+              </Card>
             </Grid>}
           </Grid>
         </Grid>
-      </Container>
+      </>
     );
   }
 }

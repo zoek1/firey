@@ -12,6 +12,8 @@
   "author": "Miguel Angel Gordian",
   "license": "MIT",
   "dependencies": {
-    "3box": "^1.16.2"
+    "3box": "^1.16.2",
+    "draft-js": "^0.11.4",
+    "react-draft-wysiwyg": "^1.14.4"
   }
 }

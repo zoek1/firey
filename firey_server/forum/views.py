@@ -95,8 +95,10 @@ def get_threads(request, pk):
 
 
 def to_dict(thread):
-
-    jsonLocation = ast.literal_eval(thread.location)
+    if type(thread.location) == dict:
+        jsonLocation = thread.location
+    else:
+        jsonLocation = ast.literal_eval(thread.location)
 
     return {
         "id": thread.id,
@@ -104,7 +106,7 @@ def to_dict(thread):
         "description": thread.description,
         "location": {
           "point":  jsonLocation,
-          "precision": thread.precision,
+          "precision": [thread.precision],
           "bounding_box": {},
           "coords": []
         },

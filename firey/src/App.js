@@ -78,7 +78,7 @@ function App(props) {
     console.log(Did)
     setChatSpace(chatSpace);
     setAppReady(true);
-
+    window.localStorage.setItem('logged', true)
     await listing(address[0]);
 
     //history.push('/home');
@@ -102,8 +102,8 @@ function App(props) {
 
 
   useEffect(() => {
-    if (!box) {
-      history.push('/');
+    if (window.localStorage.getItem('logged')) {
+      handleLogin()
     }
   }, [])
 
