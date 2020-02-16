@@ -66,13 +66,13 @@ const canPost = (publishing, publishingValue, location, precision, limits, badge
   }
 
   if (publishing === 'points' ) {
-    if (publishingValue >= limits.points) {
+    if (publishingValue <= limits.points) {
       console.log('== has the points')
       return true;
     }
   }
   if (publishing === 'challenge') {
-    if (publishingValue >= limits.challenge) {
+    if (publishingValue <= limits.challenge) {
       console.log('== Has the challenges')
       return true;
     }
