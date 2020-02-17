@@ -51,7 +51,19 @@ Agrupation based on badges will enable easy management of community and improve 
 
 ## Road to production
 
+1. Implement moderation mechanic. One user could be nominated by the thread members to moderate the thread.
+3. Add topics list organized by regions.
+5. Add options to archive thread, delete thread.
+6. Add voting system to threads
+7. Add tools to realtime collaboration on the map of each thread.
+8. Improve mobile expirence
+4. Create the profile page and the badges dashboard for users, thread and cities.
 
+### Nice to Have
+9. Integrate create POI, vote or start challenge on the map of each thread for easy access and action.
+10. Rank thread based on participation
+2. Subscription to get notifications about the activity of the thread.
+11. implement the badges proposal page.
 
 ## Flow
 ### Search for a thread to join
