@@ -1,5 +1,7 @@
 # Fiery - The message board
 
+DEMO: https://www.dropbox.com/s/3dyyj3me2sonlt1/2020-02-17%2013-05-56.flv?dl=0
+
 ## What is Fiery?
 
 It's a message board that allows people to join based on participation in the FOAM . The participation measure will in consideration are the number of FOAM tokens, POIs and Challenges. This project applies a reputation layer to enable a manageable community message board and improve participation through gamification.
